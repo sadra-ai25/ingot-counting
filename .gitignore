@@ -1,0 +1,41 @@
+cat > .gitignore << 'EOF'
+# Python cache & bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Large binary files / models
+*.pt
+*.pth
+*.weights
+*.onnx
+*.pb
+*.h5
+
+# Data & temp files
+*.mp4
+*.avi
+*.mov
+*.tar
+*.tar.gz
+output_frames/
+database/
+*.db
+*.log
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker artifacts
+*.tar
+docker-compose.override.yml
+EOF

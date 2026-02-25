@@ -1,0 +1,13 @@
+opencv-python==4.11.0.86
+ultralytics==8.3.104
+pyodbc==5.2.0
+numpy==1.23.5
+uvicorn
+fastapi
+python-multipart
+pydantic-settings>=2.0.0
+pydantic>=2.0.0
+python-dotenv
+ffmpeg-python
+pika
+torch
