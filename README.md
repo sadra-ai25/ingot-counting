@@ -8,8 +8,8 @@ Real-time steel ingot counting system using computer vision. Detects and counts 
 
 - **Multi-camera support** — simultaneously process multiple RTSP streams
 - **Video file support** — count ingots from recorded video files
-- **Virtual counting line** — configurable X-position line triggers count when ingot centroid crosses it
-- **Object tracking** — YOLOv8 tracker prevents double-counting the same ingot
+- **Virtual counting line** — configurable X-position line; count triggers when `|centroid_x − line_x| ≤ match_threshold` (default: 5 px)
+- **Object tracking** — YOLOv8 `model.track(persist=True)` assigns stable IDs; `counted_ids` set prevents double-counting
 - **Dimension estimation** — captures approximate height/width of each counted ingot
 - **SQL Server logging** — every count event is persisted to the database
 - **RabbitMQ queue** — decoupled producer/consumer architecture for reliability
@@ -97,33 +97,30 @@ Edit `.env` before starting:
 
 ## Usage
 
-The service starts automatically with Docker Compose. Use the REST API to control cameras:
+The service auto-starts both configured cameras on startup (reads from `.env`). Use the REST API to manage cameras dynamically:
 
 ```bash
-# Check service health
-curl http://localhost:5003/
+# Check which processors are running
+curl http://localhost:5003/status
 
-# Start all cameras (reads from .env)
-curl -X POST http://localhost:5003/start_cameras
+# Start cameras with custom config
+curl -X POST http://localhost:5003/start/cameras \
+  -H "Content-Type: application/json" \
+  -d '{"cameras": [{"camera_id": "cam1", "rtsp_url": "rtsp://...", "counting_line_x": 1130}]}'
 
-# Stop all cameras
-curl -X POST http://localhost:5003/stop_cameras
-
-# Upload a video file for processing
-curl -X POST http://localhost:5003/upload_video \
-  -F "file=@/path/to/video.mp4" \
-  -F "counting_line_x=1130"
+# Stop a specific camera
+curl -X POST http://localhost:5003/stop/cam1
 ```
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/` | Health check |
-| `POST` | `/start_cameras` | Start all configured camera streams |
-| `POST` | `/stop_cameras` | Stop all running camera streams |
-| `POST` | `/upload_video` | Upload a video file for ingot counting |
-| `POST` | `/start_custom_cameras` | Start cameras with custom config payload |
+| `GET` | `/status` | List all active camera processor IDs |
+| `POST` | `/start/cameras` | Start cameras with custom JSON config |
+| `POST` | `/stop/{processor_id}` | Stop a specific camera by ID |
+
+> Cameras configured via `CAMERA1_*` / `CAMERA2_*` env vars start automatically on service startup. Each camera spawns a producer thread and consumer thread with an auto-restart monitor.
 
 ## Contributing
 
